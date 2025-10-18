@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Asignación de Mesas</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🪑 Sistema de Asignación de Mesas</h1>
+            <p>Arrastra personas a las mesas para asignarlas</p>
+        </div>
+
+        <div class="controls">
+            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                📂 Cargar Excel/CSV
+            </button>
+            <button class="btn btn-primary" id="autoAssignBtn" onclick="autoAssignFromFile()" disabled>
+                ⚡ Auto-Asignar desde Excel
+            </button>
+            <button class="btn btn-success" onclick="downloadJSON()">
+                💾 Descargar JSON
+            </button>
+            <button class="btn btn-success" onclick="downloadCSV()">
+                📊 Descargar CSV
+            </button>
+            <button class="btn btn-success" onclick="downloadExcel()">
+                📗 Descargar Excel
+            </button>
+            <button class="btn btn-warning" onclick="clearAllTables()">
+                🗑️ Limpiar Todo
+            </button>
+        </div>
+
+        <div class="main-content">
+            <div class="person-list">
+                <h3>👥 Lista de Personas</h3>
+                <div class="add-person-form">
+                    <input type="text" id="newPersonName" placeholder="Nombre de la persona">
+                    <button class="btn btn-primary" onclick="addPerson()">➕</button>
+                </div>
+                <div id="personList"></div>
+            </div>
+
+            <div class="tables-grid" id="tablesGrid"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalPersons">0</div>
+                <div class="stat-label">Total Personas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="assignedPersons">0</div>
+                <div class="stat-label">Asignadas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="unassignedPersons">0</div>
+                <div class="stat-label">Sin Asignar</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="attendingPersons" style="color: #10b981;">0</div>
+                <div class="stat-label">Confirman ✓</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="notAttendingPersons" style="color: #ef4444;">0</div>
+                <div class="stat-label">No Asisten ✗</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
