@@ -2,12 +2,76 @@ let persons = [];
 let tables = {};
 let fileData = null; // Guardar los datos del archivo para auto-asignación
 
-function initializeTables() {
-    tables['Mesa Principal'] = [];
-    for (let i = 1; i <= 18; i++) {
-        tables[`Mesa ${i}`] = [];
+// Guardar en localStorage
+function saveToLocalStorage() {
+    try {
+        const data = {
+            persons: persons,
+            tables: tables,
+            timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('mesasAsignacion', JSON.stringify(data));
+        console.log('💾 Datos guardados automáticamente');
+    } catch (error) {
+        console.error('Error al guardar en localStorage:', error);
     }
+}
+
+// Cargar desde localStorage
+function loadFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem('mesasAsignacion');
+        if (saved) {
+            const data = JSON.parse(saved);
+            persons = data.persons || [];
+            tables = data.tables || {};
+            console.log('✅ Datos recuperados del localStorage');
+            console.log('Última modificación:', data.timestamp);
+            return true;
+        }
+    } catch (error) {
+        console.error('Error al cargar desde localStorage:', error);
+    }
+    return false;
+}
+
+// Limpiar localStorage
+function clearLocalStorage() {
+    localStorage.removeItem('mesasAsignacion');
+    console.log('🗑️ LocalStorage limpiado');
+}
+
+function initializeTables() {
+    // Intentar cargar desde localStorage primero
+    const loaded = loadFromLocalStorage();
+    
+    if (!loaded) {
+        // Si no hay datos guardados, inicializar vacío
+        tables['Mesa Principal'] = [];
+        for (let i = 1; i <= 18; i++) {
+            tables[`Mesa ${i}`] = [];
+        }
+    }
+    
     renderTables();
+    
+    if (loaded && (persons.length > 0 || Object.values(tables).some(t => t.length > 0))) {
+        // Mostrar notificación si hay datos recuperados
+        setTimeout(() => {
+            if (confirm('✅ Se encontraron datos guardados anteriormente.\n\n¿Deseas mantenerlos o empezar desde cero?')) {
+                console.log('📂 Manteniendo datos guardados');
+            } else {
+                clearLocalStorage();
+                persons = [];
+                tables['Mesa Principal'] = [];
+                for (let i = 1; i <= 18; i++) {
+                    tables[`Mesa ${i}`] = [];
+                }
+                renderTables();
+                renderPersonList();
+            }
+        }, 500);
+    }
 }
 
 function renderPersonList() {
@@ -31,6 +95,7 @@ function renderPersonList() {
     }).join('');
     
     updateStats();
+    saveToLocalStorage(); // Guardar después de renderizar
 }
 
 function renderTables() {
@@ -81,6 +146,7 @@ function renderTables() {
     }).join('');
     
     updateStats();
+    saveToLocalStorage(); // Guardar después de renderizar
 }
 
 function addPerson() {
@@ -169,12 +235,15 @@ function updateStats() {
 }
 
 function clearAllTables() {
-    if (confirm('¿Estás seguro de que quieres limpiar todas las asignaciones?')) {
+    if (confirm('¿Estás seguro de que quieres limpiar todas las asignaciones?\n\nEsto también borrará los datos guardados.')) {
         Object.keys(tables).forEach(table => {
             tables[table] = [];
         });
+        persons = [];
+        clearLocalStorage();
         renderTables();
         renderPersonList();
+        alert('✅ Todo limpiado correctamente');
     }
 }
 
@@ -305,6 +374,7 @@ function autoAssignFromFile() {
     // Renderizar la interfaz actualizada
     renderTables();
     renderPersonList();
+    saveToLocalStorage(); // Guardar después de auto-asignar
 
     // Mensaje al usuario
     let mensaje = `✅ Auto-asignación completada!\n\n📊 Resultado:\n- Personas asignadas: ${assignedCount}\n- Sin asignar: ${persons.length - assignedCount}`;
@@ -396,6 +466,14 @@ function loadData(data) {
     // Habilitar el botón de auto-asignar
     document.getElementById('autoAssignBtn').disabled = false;
     
+    // Preguntar si desea reemplazar datos existentes
+    if (persons.length > 0 || Object.values(tables).some(t => t.length > 0)) {
+        if (!confirm('Ya hay datos cargados.\n\n¿Deseas reemplazarlos con el nuevo archivo?')) {
+            console.log('❌ Carga cancelada por el usuario');
+            return;
+        }
+    }
+    
     // Limpiar todos los datos existentes
     persons = [];
     Object.keys(tables).forEach(table => {
@@ -474,6 +552,7 @@ function loadData(data) {
     console.log('\n🎨 Renderizando interfaz...');
     renderTables();
     renderPersonList();
+    saveToLocalStorage(); // Guardar después de cargar
     console.log('✅ Interfaz actualizada\n');
     
     // Mostrar alerta al usuario
